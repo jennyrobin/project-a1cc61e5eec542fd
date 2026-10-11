@@ -86,3 +86,123 @@
 [debug] [2026-10-11T07:32:30.465Z] Checked if tokens are valid: true, expires at: 1791707506396
 [debug] [2026-10-11T07:32:30.466Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/operations/workflows/N2U5NWM2MGUtMjBkZi00YWY1LTg5Y2MtMjFlZjU3NWEyMGVl [none]
 [debug] [2026-10-11T07:32:31.096Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/operations/workflows/N2U5NWM2MGUtMjBkZi00YWY1LTg5Y2MtMjFlZjU3NWEyMGVl 200
+[debug] [2026-10-11T07:34:14.733Z] ----------------------------------------------------------------------
+[debug] [2026-10-11T07:34:14.736Z] Command:       C:\Program Files\nodejs\node.exe C:\Users\olena\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\firebase.js deploy --only hosting --project wordway-learning-2026 --json
+[debug] [2026-10-11T07:34:14.736Z] CLI Version:   15.20.0
+[debug] [2026-10-11T07:34:14.737Z] Platform:      win32
+[debug] [2026-10-11T07:34:14.737Z] Node Version:  v24.14.0
+[debug] [2026-10-11T07:34:14.737Z] Time:          Sun Oct 11 2026 09:34:14 GMT+0200 (GMT+02:00)
+[debug] [2026-10-11T07:34:14.737Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2026-10-11T07:34:41.586Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-10-11T07:34:41.586Z] > authorizing via signed-in user (jeniferrobin1998@gmail.com)
+[debug] [2026-10-11T07:34:41.586Z] [iam] checking project wordway-learning-2026 for permissions ["firebase.projects.get","firebasehosting.sites.update"]
+[debug] [2026-10-11T07:34:41.588Z] Checked if tokens are valid: true, expires at: 1791707506396
+[debug] [2026-10-11T07:34:41.588Z] Checked if tokens are valid: true, expires at: 1791707506396
+[debug] [2026-10-11T07:34:41.589Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/wordway-learning-2026:testIamPermissions [none]
+[debug] [2026-10-11T07:34:41.589Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/wordway-learning-2026:testIamPermissions  x-goog-user-project=wordway-learning-2026
+[debug] [2026-10-11T07:34:41.589Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/wordway-learning-2026:testIamPermissions {"permissions":["firebase.projects.get","firebasehosting.sites.update"]}
+[debug] [2026-10-11T07:34:41.845Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/wordway-learning-2026:testIamPermissions 200
+[debug] [2026-10-11T07:34:41.845Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/wordway-learning-2026:testIamPermissions {"permissions":["firebase.projects.get","firebasehosting.sites.update"]}
+[debug] [2026-10-11T07:34:41.845Z] Checked if tokens are valid: true, expires at: 1791707506396
+[debug] [2026-10-11T07:34:41.845Z] Checked if tokens are valid: true, expires at: 1791707506396
+[debug] [2026-10-11T07:34:41.846Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/wordway-learning-2026 [none]
+[debug] [2026-10-11T07:34:42.131Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/wordway-learning-2026 200
+[debug] [2026-10-11T07:34:42.131Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/wordway-learning-2026 {"projectId":"wordway-learning-2026","projectNumber":"222478390830","displayName":"Wordway","name":"projects/wordway-learning-2026","resources":{"hostingSite":"wordway-learning-2026"},"state":"ACTIVE","labels":{"firebase":"enabled"},"etag":"1_97d7189f-0c02-432e-8144-ecf82dfc200b"}
+[info] 
+[info] === Deploying to 'wordway-learning-2026'...
+[info] 
+[info] i  deploying hosting 
+[debug] [2026-10-11T07:34:42.132Z] Checked if tokens are valid: true, expires at: 1791707506396
+[debug] [2026-10-11T07:34:42.132Z] Checked if tokens are valid: true, expires at: 1791707506396
+[debug] [2026-10-11T07:34:42.132Z] >>> [apiv2][query] GET https://firebasehosting.googleapis.com/v1beta1/projects/wordway-learning-2026/sites/wordway-learning-2026 [none]
+[debug] [2026-10-11T07:34:43.932Z] <<< [apiv2][status] GET https://firebasehosting.googleapis.com/v1beta1/projects/wordway-learning-2026/sites/wordway-learning-2026 200
+[debug] [2026-10-11T07:34:43.932Z] <<< [apiv2][body] GET https://firebasehosting.googleapis.com/v1beta1/projects/wordway-learning-2026/sites/wordway-learning-2026 {"name":"projects/wordway-learning-2026/sites/wordway-learning-2026","defaultUrl":"https://wordway-learning-2026.web.app","type":"DEFAULT_SITE"}
+[debug] [2026-10-11T07:34:43.934Z] Checked if tokens are valid: true, expires at: 1791707506396
+[debug] [2026-10-11T07:34:43.934Z] Checked if tokens are valid: true, expires at: 1791707506396
+[debug] [2026-10-11T07:34:43.934Z] >>> [apiv2][query] POST https://firebasehosting.googleapis.com/v1beta1/projects/-/sites/wordway-learning-2026/versions [none]
+[debug] [2026-10-11T07:34:43.934Z] >>> [apiv2][body] POST https://firebasehosting.googleapis.com/v1beta1/projects/-/sites/wordway-learning-2026/versions {"status":"CREATED","labels":{"deployment-tool":"cli-firebase"}}
+[debug] [2026-10-11T07:34:46.442Z] <<< [apiv2][status] POST https://firebasehosting.googleapis.com/v1beta1/projects/-/sites/wordway-learning-2026/versions 200
+[debug] [2026-10-11T07:34:46.442Z] <<< [apiv2][body] POST https://firebasehosting.googleapis.com/v1beta1/projects/-/sites/wordway-learning-2026/versions {"name":"projects/222478390830/sites/wordway-learning-2026/versions/581f1c844760b792","status":"CREATED","config":{},"labels":{"deployment-tool":"cli-firebase"}}
+[info] i  hosting[wordway-learning-2026]: beginning deploy... 
+[info] i  hosting[wordway-learning-2026]: found 3 files in firebase-web/dist 
+[debug] [2026-10-11T07:34:46.450Z] [hosting] uploading with 200 concurrency
+[debug] [2026-10-11T07:34:46.451Z] [hosting] hash cache [ZmlyZWJhc2Utd2ViXGRpc3Q] not populated
+[debug] [2026-10-11T07:34:46.462Z] Checked if tokens are valid: true, expires at: 1791707506396
+[debug] [2026-10-11T07:34:46.463Z] Checked if tokens are valid: true, expires at: 1791707506396
+[debug] [2026-10-11T07:34:46.464Z] [hosting] hash cache [ZmlyZWJhc2Utd2ViXGRpc3Q] stored for 3 files
+[debug] [2026-10-11T07:34:46.464Z] [hosting][hash queue][FINAL] {"max":10,"min":3,"avg":5.666666666666667,"active":0,"complete":3,"success":3,"errored":0,"retried":0,"total":3,"elapsed":13}
+[debug] [2026-10-11T07:34:46.464Z] >>> [apiv2][query] POST https://firebasehosting.googleapis.com/v1beta1/projects/222478390830/sites/wordway-learning-2026/versions/581f1c844760b792:populateFiles [none]
+[debug] [2026-10-11T07:34:46.464Z] >>> [apiv2][body] POST https://firebasehosting.googleapis.com/v1beta1/projects/222478390830/sites/wordway-learning-2026/versions/581f1c844760b792:populateFiles {"files":{"/index.html":"1398ef7bbf8f06e8f5f5706bb8803aa7ef745ae7e9690e03f4765278280411a9","/assets/index-B0sk2eUd.css":"84b839ef9d6c4bf2c0febd9113daf64762b26bcdec22f12de76c75ba356ef2cd","/assets/index-CDJFyJWL.js":"07b2dba429f94874ccceb71fdeee1bb2029a7d00ec978e628f6f2a17086c439f"}}
+[debug] [2026-10-11T07:34:47.159Z] <<< [apiv2][status] POST https://firebasehosting.googleapis.com/v1beta1/projects/222478390830/sites/wordway-learning-2026/versions/581f1c844760b792:populateFiles 200
+[debug] [2026-10-11T07:34:47.159Z] <<< [apiv2][body] POST https://firebasehosting.googleapis.com/v1beta1/projects/222478390830/sites/wordway-learning-2026/versions/581f1c844760b792:populateFiles {"uploadRequiredHashes":["1398ef7bbf8f06e8f5f5706bb8803aa7ef745ae7e9690e03f4765278280411a9","84b839ef9d6c4bf2c0febd9113daf64762b26bcdec22f12de76c75ba356ef2cd","07b2dba429f94874ccceb71fdeee1bb2029a7d00ec978e628f6f2a17086c439f"],"uploadUrl":"https://upload-firebasehosting.googleapis.com/upload/sites/wordway-learning-2026/versions/581f1c844760b792/files"}
+[debug] [2026-10-11T07:34:47.159Z] Checked if tokens are valid: true, expires at: 1791707506396
+[debug] [2026-10-11T07:34:47.159Z] Checked if tokens are valid: true, expires at: 1791707506396
+[debug] [2026-10-11T07:34:47.160Z] Checked if tokens are valid: true, expires at: 1791707506396
+[debug] [2026-10-11T07:34:47.160Z] Checked if tokens are valid: true, expires at: 1791707506396
+[debug] [2026-10-11T07:34:47.160Z] Checked if tokens are valid: true, expires at: 1791707506396
+[debug] [2026-10-11T07:34:47.160Z] Checked if tokens are valid: true, expires at: 1791707506396
+[debug] [2026-10-11T07:34:47.160Z] >>> [apiv2][query] POST https://upload-firebasehosting.googleapis.com/upload/sites/wordway-learning-2026/versions/581f1c844760b792/files/1398ef7bbf8f06e8f5f5706bb8803aa7ef745ae7e9690e03f4765278280411a9 [none]
+[debug] [2026-10-11T07:34:47.160Z] >>> [apiv2][body] POST https://upload-firebasehosting.googleapis.com/upload/sites/wordway-learning-2026/versions/581f1c844760b792/files/1398ef7bbf8f06e8f5f5706bb8803aa7ef745ae7e9690e03f4765278280411a9 [stream]
+[debug] [2026-10-11T07:34:47.161Z] >>> [apiv2][query] POST https://upload-firebasehosting.googleapis.com/upload/sites/wordway-learning-2026/versions/581f1c844760b792/files/84b839ef9d6c4bf2c0febd9113daf64762b26bcdec22f12de76c75ba356ef2cd [none]
+[debug] [2026-10-11T07:34:47.161Z] >>> [apiv2][body] POST https://upload-firebasehosting.googleapis.com/upload/sites/wordway-learning-2026/versions/581f1c844760b792/files/84b839ef9d6c4bf2c0febd9113daf64762b26bcdec22f12de76c75ba356ef2cd [stream]
+[debug] [2026-10-11T07:34:47.161Z] >>> [apiv2][query] POST https://upload-firebasehosting.googleapis.com/upload/sites/wordway-learning-2026/versions/581f1c844760b792/files/07b2dba429f94874ccceb71fdeee1bb2029a7d00ec978e628f6f2a17086c439f [none]
+[debug] [2026-10-11T07:34:47.161Z] >>> [apiv2][body] POST https://upload-firebasehosting.googleapis.com/upload/sites/wordway-learning-2026/versions/581f1c844760b792/files/07b2dba429f94874ccceb71fdeee1bb2029a7d00ec978e628f6f2a17086c439f [stream]
+[debug] [2026-10-11T07:34:47.162Z] [hosting][populate queue][FINAL] {"max":698,"min":698,"avg":698,"active":0,"complete":1,"success":1,"errored":0,"retried":0,"total":1,"elapsed":700}
+[debug] [2026-10-11T07:34:47.162Z] [hosting] uploads queued: 3
+[debug] [2026-10-11T07:34:48.041Z] <<< [apiv2][status] POST https://upload-firebasehosting.googleapis.com/upload/sites/wordway-learning-2026/versions/581f1c844760b792/files/1398ef7bbf8f06e8f5f5706bb8803aa7ef745ae7e9690e03f4765278280411a9 200
+[debug] [2026-10-11T07:34:48.042Z] <<< [apiv2][body] POST https://upload-firebasehosting.googleapis.com/upload/sites/wordway-learning-2026/versions/581f1c844760b792/files/1398ef7bbf8f06e8f5f5706bb8803aa7ef745ae7e9690e03f4765278280411a9 [stream]
+[debug] [2026-10-11T07:34:48.104Z] <<< [apiv2][status] POST https://upload-firebasehosting.googleapis.com/upload/sites/wordway-learning-2026/versions/581f1c844760b792/files/07b2dba429f94874ccceb71fdeee1bb2029a7d00ec978e628f6f2a17086c439f 200
+[debug] [2026-10-11T07:34:48.104Z] <<< [apiv2][body] POST https://upload-firebasehosting.googleapis.com/upload/sites/wordway-learning-2026/versions/581f1c844760b792/files/07b2dba429f94874ccceb71fdeee1bb2029a7d00ec978e628f6f2a17086c439f [stream]
+[debug] [2026-10-11T07:34:48.170Z] <<< [apiv2][status] POST https://upload-firebasehosting.googleapis.com/upload/sites/wordway-learning-2026/versions/581f1c844760b792/files/84b839ef9d6c4bf2c0febd9113daf64762b26bcdec22f12de76c75ba356ef2cd 200
+[debug] [2026-10-11T07:34:48.170Z] <<< [apiv2][body] POST https://upload-firebasehosting.googleapis.com/upload/sites/wordway-learning-2026/versions/581f1c844760b792/files/84b839ef9d6c4bf2c0febd9113daf64762b26bcdec22f12de76c75ba356ef2cd [stream]
+[debug] [2026-10-11T07:34:48.170Z] [hosting][upload queue][FINAL] {"max":1011,"min":883,"avg":946,"active":0,"complete":3,"success":3,"errored":0,"retried":0,"total":3,"elapsed":1011}
+[info] i  hosting: upload complete 
+[info] +  hosting[wordway-learning-2026]: file upload complete 
+[debug] [2026-10-11T07:34:48.170Z] [hosting] deploy completed after 1726ms
+[debug] [2026-10-11T07:34:48.170Z] [
+  {
+    "config": {
+      "public": "firebase-web/dist",
+      "ignore": [
+        "firebase.json",
+        "**/.*",
+        "**/node_modules/**"
+      ],
+      "rewrites": [
+        {
+          "source": "**",
+          "destination": "/index.html"
+        }
+      ],
+      "headers": [
+        {
+          "source": "**/*.@(js|css)",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "public,max-age=31536000,immutable"
+            }
+          ]
+        }
+      ],
+      "site": "wordway-learning-2026"
+    },
+    "version": "projects/222478390830/sites/wordway-learning-2026/versions/581f1c844760b792"
+  }
+]
+[info] i  hosting[wordway-learning-2026]: finalizing version... 
+[debug] [2026-10-11T07:34:48.171Z] Checked if tokens are valid: true, expires at: 1791707506396
+[debug] [2026-10-11T07:34:48.171Z] Checked if tokens are valid: true, expires at: 1791707506396
+[debug] [2026-10-11T07:34:48.172Z] >>> [apiv2][query] PATCH https://firebasehosting.googleapis.com/v1beta1/projects/-/sites/wordway-learning-2026/versions/581f1c844760b792 updateMask=status%2Cconfig
+[debug] [2026-10-11T07:34:48.172Z] >>> [apiv2][body] PATCH https://firebasehosting.googleapis.com/v1beta1/projects/-/sites/wordway-learning-2026/versions/581f1c844760b792 {"status":"FINALIZED","config":{"rewrites":[{"glob":"**","path":"/index.html"}],"headers":[{"glob":"**/*.@(js|css)","headers":{"Cache-Control":"public,max-age=31536000,immutable"}}]}}
+[debug] [2026-10-11T07:34:49.537Z] <<< [apiv2][status] PATCH https://firebasehosting.googleapis.com/v1beta1/projects/-/sites/wordway-learning-2026/versions/581f1c844760b792 200
+[debug] [2026-10-11T07:34:49.537Z] <<< [apiv2][body] PATCH https://firebasehosting.googleapis.com/v1beta1/projects/-/sites/wordway-learning-2026/versions/581f1c844760b792 {"name":"projects/222478390830/sites/wordway-learning-2026/versions/581f1c844760b792","status":"FINALIZED","config":{"headers":[{"headers":{"Cache-Control":"public,max-age=31536000,immutable"},"glob":"**/*.@(js|css)"}],"rewrites":[{"glob":"**","path":"/index.html"}]},"labels":{"deployment-tool":"cli-firebase"},"createTime":"2026-10-11T07:34:44.514713Z","createUser":{"email":"jeniferrobin1998@gmail.com"},"finalizeTime":"2026-10-11T07:34:49.436562Z","finalizeUser":{"email":"jeniferrobin1998@gmail.com"}}
+[debug] [2026-10-11T07:34:49.537Z] [hosting] finalized version for wordway-learning-2026:[object Object]
+[info] +  hosting[wordway-learning-2026]: version finalized 
+[info] i  hosting[wordway-learning-2026]: releasing new version... 
+[debug] [2026-10-11T07:34:49.538Z] Checked if tokens are valid: true, expires at: 1791707506396
+[debug] [2026-10-11T07:34:49.538Z] Checked if tokens are valid: true, expires at: 1791707506396
+[debug] [2026-10-11T07:34:49.538Z] >>> [apiv2][query] POST https://firebasehosting.googleapis.com/v1beta1/projects/-/sites/wordway-learning-2026/channels/live/releases versionName=projects%2F222478390830%2Fsites%2Fwordway-learning-2026%2Fversions%2F581f1c844760b792
+[debug] [2026-10-11T07:34:49.538Z] >>> [apiv2][body] POST https://firebasehosting.googleapis.com/v1beta1/projects/-/sites/wordway-learning-2026/channels/live/releases {}
+[debug] [2026-10-11T07:34:50.750Z] <<< [apiv2][status] POST https://firebasehosting.googleapis.com/v1beta1/projects/-/sites/wordway-learning-2026/channels/live/releases 200
