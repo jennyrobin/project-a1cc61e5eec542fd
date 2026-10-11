@@ -93,7 +93,7 @@ export default function App() {
     }catch{ /* The next lesson start can retry after the provider limit resets. */ }
     finally{setExtending(false)}
   };
-  const openLesson=(n:number)=>{if(active)void extendCourse(active,n);setLesson(n);setScreen("lesson")};
+  const openLesson=(n:number)=>{setMenu(false);if(active)void extendCourse(active,n);setLesson(n);setScreen("lesson")};
   return <main className={`app ${data.theme} ${data.accent}`} style={{zoom:(data.interfaceScale??100)/100} as CSSProperties}>
     {screen === "create" ? <CreateCourse canBack={!!active} onBack={()=>setScreen("home")} onCreated={c=>{setData(d=>({...d,courses:[...d.courses,c],activeCourseId:c.id}));setScreen("home")}}/> :
      screen === "lesson" && active ? <Lesson course={active} number={lesson} onSave={saveCourse} onClose={()=>setScreen("home")}/> :
