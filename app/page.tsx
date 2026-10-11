@@ -21,8 +21,27 @@ const maxLesson = (c:Course) => Math.max(1, ...c.words.map(w => w.lesson));
 async function ai(body:unknown) {
   const response = await fetch("/api/ai", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(body) });
   const result = await response.json();
-  if (!response.ok) throw new Error(result.error || "AI request failed");
+  if (!response.ok) {
+    const error = new Error(result.error || "AI request failed") as Error & { retryAfter?:number; status?:number };
+    error.retryAfter = Number(result.retryAfter) || undefined;
+    error.status = response.status;
+    throw error;
+  }
   return result;
+}
+
+const wait = (ms:number) => new Promise(resolve => setTimeout(resolve, ms));
+async function aiWithRetry(body:unknown, onWait?:(seconds:number)=>void) {
+  for (let attempt=0;attempt<4;attempt++) {
+    try { return await ai(body); }
+    catch (reason) {
+      const error=reason as Error & { retryAfter?:number; status?:number };
+      if(error.status!==429 || attempt===3) throw error;
+      const seconds=Math.max(4,Math.min(90,error.retryAfter || 12*(attempt+1)));
+      onWait?.(seconds);
+      await wait(seconds*1000);
+    }
+  }
 }
 
 function lessonSession(course:Course, lesson:number) {
@@ -94,7 +113,7 @@ function Metric({label,value}:{label:string,value:string}){return <div className
 function CreateCourse({canBack,onBack,onCreated}:{canBack:boolean,onBack:()=>void,onCreated:(c:Course)=>void}){
   const [target,setTarget]=useState(""),[native,setNative]=useState(""),[topic,setTopic]=useState(""),[busy,setBusy]=useState(false),[status,setStatus]=useState(""),[error,setError]=useState("");
   const create=async()=>{if(!target.trim()||!native.trim()||!topic.trim()){setError("Complete all three fields.");return} setBusy(true);setError("");
-    try{let words:Word[]=[];for(let chunk=0;chunk<5;chunk++){setStatus(`Creating words ${chunk*20+1}–${chunk*20+20} of 100...`);const r=await ai({action:"generate",targetLanguage:target,nativeLanguage:native,topic,offset:chunk*20,existing:words.map(w=>w.target)});words=[...words,...r.words].slice(0,100)} setStatus("Naming lessons...");const t=await ai({action:"titles",targetLanguage:target,nativeLanguage:native,topic,words}); const course:Course={id:crypto.randomUUID(),name:`${target} · ${topic}`,targetLanguage:target,nativeLanguage:native,topic,words,lessonTitles:t.titles||{},progress:{currentLesson:1,completedLessons:[],stats:{}}};onCreated(course)}catch(e){setError(e instanceof Error?e.message:"Could not create course") }finally{setBusy(false)}};
+    try{let words:Word[]=[];for(let chunk=0;chunk<5;chunk++){setStatus(`Creating words ${chunk*20+1}–${chunk*20+20} of 100...`);const r=await aiWithRetry({action:"generate",targetLanguage:target,nativeLanguage:native,topic,offset:chunk*20,existing:words.map(w=>w.target)},seconds=>setStatus(`Groq is busy. Continuing automatically in ${seconds} seconds...`));words=[...words,...r.words].slice(0,100);if(chunk<4){setStatus(`Words created: ${words.length} of 100. Preparing the next group...`);await wait(5000)}} setStatus("Naming lessons...");const t=await aiWithRetry({action:"titles",targetLanguage:target,nativeLanguage:native,topic,words},seconds=>setStatus(`Waiting ${seconds} seconds before naming lessons...`)); const course:Course={id:crypto.randomUUID(),name:`${target} · ${topic}`,targetLanguage:target,nativeLanguage:native,topic,words,lessonTitles:t.titles||{},progress:{currentLesson:1,completedLessons:[],stats:{}}};onCreated(course)}catch(e){const error=e as Error & {status?:number};setError(error.status===429?"Groq's usage limit is exhausted. Your progress is safe; try creating the course again after the limit resets.":error.message||"Could not create course") }finally{setBusy(false)}};
   return <section className="full-page create-page">{canBack&&<button className="back icon-btn large" onClick={onBack}><ArrowLeft/></button>}<div className="form-panel"><span className="brand-mark">W</span><p className="kicker">A NEW JOURNEY</p><h1>Create a course</h1><p>Choose what you want to learn. AI will prepare 100 words from beginner to expert.</p><label>Language to learn<input value={target} onChange={e=>setTarget(e.target.value)} placeholder="For example, German"/></label><label>Your native language<input value={native} onChange={e=>setNative(e.target.value)} placeholder="For example, English"/></label><label>Topic<input value={topic} onChange={e=>setTopic(e.target.value)} placeholder="Engineering, school, travel..."/></label>{error&&<div className="error">{error}</div>}{busy?<div className="status"><span className="spinner"/>{status}</div>:<button className="primary wide" onClick={create}>Create course<ChevronRight/></button>}</div></section>
 }
 
