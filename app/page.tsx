@@ -12,6 +12,7 @@ type Screen = "home"|"words"|"settings"|"create"|"lesson";
 type Task = { type:"choice"|"write"|"toNative"|"toTarget"|"match"; word:Word; options?:string[]; pairs?:Word[] };
 
 const STORE = "wordway-web-v1";
+const AI_URL = (globalThis as typeof globalThis & { WORDWAY_API_URL?:string }).WORDWAY_API_URL || "/api/ai";
 const empty:Data = { courses:[], theme:"dark", accent:"purple" };
 const shuffle = <T,>(a:T[]) => [...a].sort(() => Math.random() - .5);
 const normalize = (s:string) => s.trim().toLocaleLowerCase().replace(/[.,!?;:()\[\]{}"']/g, "").replace(/\s+/g," ");
@@ -19,7 +20,7 @@ const matches = (answer:string, values:string[]) => values.some(v => v.split(/[,
 const maxLesson = (c:Course) => Math.max(1, ...c.words.map(w => w.lesson));
 
 async function ai(body:unknown) {
-  const response = await fetch("/api/ai", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(body) });
+  const response = await fetch(AI_URL, { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(body) });
   const result = await response.json();
   if (!response.ok) {
     const error = new Error(result.error || "AI request failed") as Error & { retryAfter?:number; status?:number };
