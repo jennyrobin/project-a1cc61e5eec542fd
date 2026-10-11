@@ -71,13 +71,29 @@ export default function App() {
   const [screen,setScreen] = useState<Screen>("home");
   const [menu,setMenu] = useState(false);
   const [lesson,setLesson] = useState(1);
+  const [extending,setExtending] = useState(false);
   const active = data.courses.find(c=>c.id===data.activeCourseId) ?? data.courses[0];
   useEffect(()=>{ try { const raw=localStorage.getItem(STORE); if(raw) setData({...empty,...JSON.parse(raw)}); } finally { setReady(true); } },[]);
   useEffect(()=>{ if(ready) localStorage.setItem(STORE,JSON.stringify(data)); },[data,ready]);
   useEffect(()=>{ if(ready && !active) setScreen("create"); },[ready,active]);
   const saveCourse=(course:Course)=>setData(d=>({...d,activeCourseId:course.id,courses:d.courses.map(c=>c.id===course.id?course:c)}));
   if(!ready) return <main className="loading"><span className="spinner"/></main>;
-  const openLesson=(n:number)=>{setLesson(n);setScreen("lesson")};
+  const extendCourse=async(course:Course,startingLesson:number)=>{
+    const total=maxLesson(course);
+    if(extending||startingLesson<total-1||course.progress.lastExtendedLesson===startingLesson)return;
+    setExtending(true);
+    const marked={...course,progress:{...course.progress,lastExtendedLesson:startingLesson}};
+    saveCourse(marked);
+    try{
+      const result=await aiWithRetry({action:"generate",targetLanguage:course.targetLanguage,nativeLanguage:course.nativeLanguage,topic:course.topic,offset:course.words.length,existing:course.words.map(w=>w.target)});
+      const expanded={...marked,words:[...course.words,...result.words]};
+      setData(d=>({...d,courses:d.courses.map(c=>c.id===course.id?{...c,words:expanded.words}:c)}));
+      const titled=await aiWithRetry({action:"titles",targetLanguage:course.targetLanguage,nativeLanguage:course.nativeLanguage,topic:course.topic,words:expanded.words});
+      setData(d=>({...d,courses:d.courses.map(c=>c.id===course.id?{...c,lessonTitles:{...c.lessonTitles,...(titled.titles||{})}}:c)}));
+    }catch{ /* The next lesson start can retry after the provider limit resets. */ }
+    finally{setExtending(false)}
+  };
+  const openLesson=(n:number)=>{if(active)void extendCourse(active,n);setLesson(n);setScreen("lesson")};
   return <main className={`app ${data.theme} ${data.accent}`}>
     {screen === "create" ? <CreateCourse canBack={!!active} onBack={()=>setScreen("home")} onCreated={c=>{setData(d=>({...d,courses:[...d.courses,c],activeCourseId:c.id}));setScreen("home")}}/> :
      screen === "lesson" && active ? <Lesson course={active} number={lesson} onSave={saveCourse} onClose={()=>setScreen("home")}/> : <>
@@ -86,7 +102,7 @@ export default function App() {
         <button className="course-trigger" onClick={()=>setMenu(!menu)}>{active?.name || "Choose a course"}<ChevronDown size={19}/></button>
         <button className="icon-btn large" aria-label="Settings" onClick={()=>setScreen("settings")}><Settings/></button>
       </header>
-      {screen === "home" && active && <Home course={active} onLesson={openLesson}/>} 
+      {screen === "home" && active && <Home course={active} onLesson={openLesson} extending={extending}/>} 
       {screen === "words" && active && <Words course={active}/>} 
       {screen === "settings" && <SettingsPage data={data} course={active} onChange={setData} onBack={()=>setScreen("home")} onWords={()=>setScreen("words")}/>} 
       {screen !== "settings" && <nav className="bottom-nav"><button className={screen==="home"?"active":""} onClick={()=>setScreen("home")}><span className="path-icon">●</span>Path</button><button className={screen==="words"?"active":""} onClick={()=>setScreen("words")}><BookOpen/>Words</button></nav>}
@@ -95,7 +111,7 @@ export default function App() {
   </main>;
 }
 
-function Home({course,onLesson}:{course:Course,onLesson:(n:number)=>void}) {
+function Home({course,onLesson,extending}:{course:Course,onLesson:(n:number)=>void;extending:boolean}) {
   const total=maxLesson(course), current=Math.min(course.progress.currentLesson,total);
   const stats=Object.values(course.progress.stats), seen=stats.filter(s=>s.seen).length, mastered=stats.filter(s=>s.mastery>=.86&&s.correct>=3).length;
   const answers=stats.reduce((a,s)=>a+s.seen,0), correct=stats.reduce((a,s)=>a+s.correct,0);
@@ -105,7 +121,7 @@ function Home({course,onLesson}:{course:Course,onLesson:(n:number)=>void}) {
     <div className="heading"><p>{course.targetLanguage} <span>→</span> {course.nativeLanguage}</p><h1>Your learning path</h1></div>
     <section className="next-lesson"><div><span className="kicker">NEXT LESSON · {current} OF {total}</span><h2>{course.lessonTitles[current] || `Lesson ${current}`}</h2><p>Learn new words, practise them, and revisit difficult ones.</p><button className="primary" onClick={()=>onLesson(current)}><Play size={18} fill="currentColor"/>Start lesson</button></div><div className="ring"><strong>{Math.round(seen/course.words.length*100)||0}%</strong><span>explored</span></div></section>
     <div className="metrics"><Metric label="Words seen" value={`${seen}/${course.words.length}`}/><Metric label="Mastered" value={String(mastered)}/><Metric label="Accuracy" value={`${answers?Math.round(correct/answers*100):0}%`}/></div>
-    <div className="section-title"><div><span className="kicker">YOUR JOURNEY</span><h2>Lessons</h2></div><span>Drag or scroll to explore</span></div>
+    <div className="section-title"><div><span className="kicker">YOUR JOURNEY</span><h2>Lessons</h2></div><span>{extending?"Adding 20 new words...":"Drag or scroll to explore"}</span></div>
     <div className="road-wrap" ref={pathRef}>{Array.from({length:total},(_,i)=>i+1).map((n,i)=>{const done=course.progress.completedLessons.includes(n), locked=n>course.progress.currentLesson;return <div className={`road-step ${i%2?"low":"high"}`} key={n}><button disabled={locked} className={`lesson-node ${done?"done":""} ${n===current?"current":""}`} onClick={()=>onLesson(n)}>{done?<Check/>:n}</button><strong>Lesson {n}</strong><span>{course.lessonTitles[n]||"New words"}</span></div>})}</div>
   </section>;
 }
@@ -114,8 +130,8 @@ function Metric({label,value}:{label:string,value:string}){return <div className
 function CreateCourse({canBack,onBack,onCreated}:{canBack:boolean,onBack:()=>void,onCreated:(c:Course)=>void}){
   const [target,setTarget]=useState(""),[native,setNative]=useState(""),[topic,setTopic]=useState(""),[busy,setBusy]=useState(false),[status,setStatus]=useState(""),[error,setError]=useState("");
   const create=async()=>{if(!target.trim()||!native.trim()||!topic.trim()){setError("Complete all three fields.");return} setBusy(true);setError("");
-    try{let words:Word[]=[];for(let chunk=0;chunk<5;chunk++){setStatus(`Creating words ${chunk*20+1}–${chunk*20+20} of 100...`);const r=await aiWithRetry({action:"generate",targetLanguage:target,nativeLanguage:native,topic,offset:chunk*20,existing:words.map(w=>w.target)},seconds=>setStatus(`Groq is busy. Continuing automatically in ${seconds} seconds...`));words=[...words,...r.words].slice(0,100);if(chunk<4){setStatus(`Words created: ${words.length} of 100. Preparing the next group...`);await wait(5000)}} setStatus("Naming lessons...");const t=await aiWithRetry({action:"titles",targetLanguage:target,nativeLanguage:native,topic,words},seconds=>setStatus(`Waiting ${seconds} seconds before naming lessons...`)); const course:Course={id:crypto.randomUUID(),name:`${target} · ${topic}`,targetLanguage:target,nativeLanguage:native,topic,words,lessonTitles:t.titles||{},progress:{currentLesson:1,completedLessons:[],stats:{}}};onCreated(course)}catch(e){const error=e as Error & {status?:number};setError(error.status===429?"Groq's usage limit is exhausted. Your progress is safe; try creating the course again after the limit resets.":error.message||"Could not create course") }finally{setBusy(false)}};
-  return <section className="full-page create-page">{canBack&&<button className="back icon-btn large" onClick={onBack}><ArrowLeft/></button>}<div className="form-panel"><span className="brand-mark">W</span><p className="kicker">A NEW JOURNEY</p><h1>Create a course</h1><p>Choose what you want to learn. AI will prepare 100 words from beginner to expert.</p><label>Language to learn<input value={target} onChange={e=>setTarget(e.target.value)} placeholder="For example, German"/></label><label>Your native language<input value={native} onChange={e=>setNative(e.target.value)} placeholder="For example, English"/></label><label>Topic<input value={topic} onChange={e=>setTopic(e.target.value)} placeholder="Engineering, school, travel..."/></label>{error&&<div className="error">{error}</div>}{busy?<div className="status"><span className="spinner"/>{status}</div>:<button className="primary wide" onClick={create}>Create course<ChevronRight/></button>}</div></section>
+    try{setStatus("Creating 20 words...");const r=await aiWithRetry({action:"generate",targetLanguage:target,nativeLanguage:native,topic,offset:0,existing:[]},seconds=>setStatus(`Groq is busy. Continuing automatically in ${seconds} seconds...`));const words:Word[]=r.words;setStatus("Naming 4 lessons...");const t=await aiWithRetry({action:"titles",targetLanguage:target,nativeLanguage:native,topic,words},seconds=>setStatus(`Waiting ${seconds} seconds before naming lessons...`));const course:Course={id:crypto.randomUUID(),name:`${target} · ${topic}`,targetLanguage:target,nativeLanguage:native,topic,words,lessonTitles:t.titles||{},progress:{currentLesson:1,completedLessons:[],stats:{}}};onCreated(course)}catch(e){const error=e as Error & {status?:number};setError(error.status===429?"Groq's usage limit is exhausted. Try creating the course again after the limit resets.":error.message||"Could not create course") }finally{setBusy(false)}};
+  return <section className="full-page create-page">{canBack&&<button className="back icon-btn large" onClick={onBack}><ArrowLeft/></button>}<div className="form-panel"><span className="brand-mark">W</span><p className="kicker">A NEW JOURNEY</p><h1>Create a course</h1><p>Choose what you want to learn. AI will prepare the first 20 words and add more as you progress.</p><label>Language to learn<input value={target} onChange={e=>setTarget(e.target.value)} placeholder="For example, German"/></label><label>Your native language<input value={native} onChange={e=>setNative(e.target.value)} placeholder="For example, English"/></label><label>Topic<input value={topic} onChange={e=>setTopic(e.target.value)} placeholder="Engineering, school, travel..."/></label>{error&&<div className="error">{error}</div>}{busy?<div className="status"><span className="spinner"/>{status}</div>:<button className="primary wide" onClick={create}>Create course<ChevronRight/></button>}</div></section>
 }
 
 function CourseMenu({data,onClose,onSelect,onCreate,onDelete}:{data:Data,onClose:()=>void,onSelect:(id:string)=>void,onCreate:()=>void,onDelete:(c:Course)=>void}){return <div className="overlay" onMouseDown={e=>{if(e.target===e.currentTarget)onClose()}}><section className="course-menu"><div className="modal-head"><div><span className="kicker">SWITCH SPACE</span><h2>Your courses</h2></div><button className="icon-btn" onClick={onClose}><X/></button></div><div className="course-list">{data.courses.map(c=><div className="course-row" key={c.id}><button onClick={()=>onSelect(c.id)}><span className="course-letter">{c.targetLanguage[0]?.toUpperCase()}</span><span><strong>{c.name}</strong><small>{c.words.length} words · {c.targetLanguage}</small></span>{c.id===data.activeCourseId&&<Check className="selected"/>}</button><button className="trash" aria-label="Delete course" onClick={()=>onDelete(c)}><Trash2/></button></div>)}</div><button className="secondary wide" onClick={onCreate}><Plus/>New course</button></section></div>}
