@@ -1,14 +1,14 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowLeft, BookOpen, Check, ChevronDown, ChevronRight, Download, Moon, Play, Plus, Search, Settings, Sun, Trash2, X } from "lucide-react";
+import { ArrowLeft, BarChart3, BookOpen, Check, ChevronDown, ChevronRight, Download, Moon, Play, Plus, Search, Settings, Sun, Trash2, X } from "lucide-react";
 
 type Level = "easy" | "normal" | "hard" | "expert";
 type Word = { id:string; target:string; native:string; level:Level; lesson:number; partOfSpeech:string; synonyms:string[]; exampleTarget:string; exampleNative:string };
 type Stat = { seen:number; correct:number; wrong:number; mastery:number; averageMs:number; lastSeen?:string; nextDue:string };
 type Course = { id:string; name:string; targetLanguage:string; nativeLanguage:string; topic:string; words:Word[]; lessonTitles:Record<string,string>; progress:{ currentLesson:number; completedLessons:number[]; stats:Record<string,Stat>; lastExtendedLesson?:number } };
 type Data = { courses:Course[]; activeCourseId?:string; theme:"light"|"dark"; accent:"purple"|"blue" };
-type Screen = "home"|"words"|"settings"|"create"|"lesson";
+type Screen = "home"|"words"|"stats"|"settings"|"create"|"lesson";
 type Task = { type:"choice"|"write"|"toNative"|"toTarget"|"match"; word:Word; options?:string[]; pairs?:Word[] };
 
 const STORE = "wordway-web-v1";
@@ -98,14 +98,14 @@ export default function App() {
     {screen === "create" ? <CreateCourse canBack={!!active} onBack={()=>setScreen("home")} onCreated={c=>{setData(d=>({...d,courses:[...d.courses,c],activeCourseId:c.id}));setScreen("home")}}/> :
      screen === "lesson" && active ? <Lesson course={active} number={lesson} onSave={saveCourse} onClose={()=>setScreen("home")}/> : <>
       <header className="topbar">
-        <div className="top-spacer"/>
+        <div className="top-spacer">{screen!=="home"&&<button className="icon-btn large" aria-label="Back" onClick={()=>setScreen("home")}><ArrowLeft/></button>}</div>
         <button className="course-trigger" onClick={()=>setMenu(!menu)}>{active?.name || "Choose a course"}<ChevronDown size={19}/></button>
         <button className="icon-btn large" aria-label="Settings" onClick={()=>setScreen("settings")}><Settings/></button>
       </header>
       {screen === "home" && active && <Home course={active} onLesson={openLesson} extending={extending}/>} 
       {screen === "words" && active && <Words course={active}/>} 
-      {screen === "settings" && <SettingsPage data={data} course={active} onChange={setData} onBack={()=>setScreen("home")} onWords={()=>setScreen("words")}/>} 
-      {screen !== "settings" && <nav className="bottom-nav"><button className={screen==="home"?"active":""} onClick={()=>setScreen("home")}><span className="path-icon">●</span>Path</button><button className={screen==="words"?"active":""} onClick={()=>setScreen("words")}><BookOpen/>Words</button></nav>}
+      {screen === "stats" && active && <Stats course={active}/>} 
+      {screen === "settings" && <SettingsPage data={data} course={active} onChange={setData} onBack={()=>setScreen("home")} onWords={()=>setScreen("words")} onStats={()=>setScreen("stats")}/>} 
     </>}
     {menu && <CourseMenu data={data} onClose={()=>setMenu(false)} onSelect={id=>{setData(d=>({...d,activeCourseId:id}));setMenu(false);setScreen("home")}} onCreate={()=>{setMenu(false);setScreen("create")}} onDelete={course=>{if(confirm(`Delete “${course.name}” and all its progress?`)){setData(d=>{const courses=d.courses.filter(c=>c.id!==course.id);return {...d,courses,activeCourseId:courses[0]?.id}});setMenu(false)}}}/>} 
   </main>;
@@ -118,14 +118,14 @@ function Home({course,onLesson,extending}:{course:Course,onLesson:(n:number)=>vo
   const pathRef=useRef<HTMLDivElement>(null);
   useEffect(()=>{ pathRef.current?.querySelector(".current")?.scrollIntoView({behavior:"smooth",inline:"center",block:"nearest"}); },[current]);
   return <section className="page home-page">
-    <div className="heading"><p>{course.targetLanguage} <span>→</span> {course.nativeLanguage}</p><h1>Your learning path</h1></div>
+    <div className="heading"><h1>Your path</h1><p>{course.targetLanguage} <span>→</span> {course.nativeLanguage} <b>·</b> {course.topic}</p></div>
     <section className="next-lesson"><div><span className="kicker">NEXT LESSON · {current} OF {total}</span><h2>{course.lessonTitles[current] || `Lesson ${current}`}</h2><p>Learn new words, practise them, and revisit difficult ones.</p><button className="primary" onClick={()=>onLesson(current)}><Play size={18} fill="currentColor"/>Start lesson</button></div><div className="ring"><strong>{Math.round(seen/course.words.length*100)||0}%</strong><span>explored</span></div></section>
-    <div className="metrics"><Metric label="Words seen" value={`${seen}/${course.words.length}`}/><Metric label="Mastered" value={String(mastered)}/><Metric label="Accuracy" value={`${answers?Math.round(correct/answers*100):0}%`}/></div>
+    <div className="metrics"><Metric tone="blue" label="Words seen" value={`${seen}/${course.words.length}`}/><Metric tone="green" label="Mastered" value={String(mastered)}/><Metric tone="orange" label="Accuracy" value={`${answers?Math.round(correct/answers*100):0}%`}/></div>
     <div className="section-title"><div><span className="kicker">YOUR JOURNEY</span><h2>Lessons</h2></div><span>{extending?"Adding 20 new words...":"Drag or scroll to explore"}</span></div>
     <div className="road-wrap" ref={pathRef}>{Array.from({length:total},(_,i)=>i+1).map((n,i)=>{const done=course.progress.completedLessons.includes(n), locked=n>course.progress.currentLesson;return <div className={`road-step ${i%2?"low":"high"}`} key={n}><button disabled={locked} className={`lesson-node ${done?"done":""} ${n===current?"current":""}`} onClick={()=>onLesson(n)}>{done?<Check/>:n}</button><strong>Lesson {n}</strong><span>{course.lessonTitles[n]||"New words"}</span></div>})}</div>
   </section>;
 }
-function Metric({label,value}:{label:string,value:string}){return <div className="metric"><span>{label}</span><strong>{value}</strong></div>}
+function Metric({label,value,tone="accent"}:{label:string,value:string,tone?:string}){return <div className={`metric ${tone}`}><span>{label}</span><strong>{value}</strong></div>}
 
 function CreateCourse({canBack,onBack,onCreated}:{canBack:boolean,onBack:()=>void,onCreated:(c:Course)=>void}){
   const [target,setTarget]=useState(""),[native,setNative]=useState(""),[topic,setTopic]=useState(""),[busy,setBusy]=useState(false),[status,setStatus]=useState(""),[error,setError]=useState("");
@@ -138,9 +138,11 @@ function CourseMenu({data,onClose,onSelect,onCreate,onDelete}:{data:Data,onClose
 
 function Words({course}:{course:Course}){const [query,setQuery]=useState("");const words=course.words.filter(w=>`${w.target} ${w.native}`.toLowerCase().includes(query.toLowerCase()));return <section className="page words-page"><div className="heading"><p>COURSE LIBRARY</p><h1>All words</h1></div><div className="search"><Search/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Search words or translations"/></div><div className="word-grid">{words.map(w=>{const s=course.progress.stats[w.id];return <article className="word-card" key={w.id}><div><span className={`level ${w.level}`}>{w.level}</span><small>Lesson {w.lesson}</small></div><h3>{w.target}</h3><h4>{w.native}</h4>{w.synonyms.length>0&&<p><b>Synonyms:</b> {w.synonyms.join(", ")}</p>}<p>{w.exampleTarget}</p><div className="mastery"><span style={{width:`${(s?.mastery||0)*100}%`}}/></div></article>})}</div></section>}
 
-function SettingsPage({data,course,onChange,onBack,onWords}:{data:Data,course?:Course,onChange:(d:Data)=>void,onBack:()=>void,onWords:()=>void}){
+function Stats({course}:{course:Course}){const all=Object.values(course.progress.stats),seen=all.filter(s=>s.seen>0).length,mastered=all.filter(s=>s.mastery>=.86&&s.correct>=3).length,answers=all.reduce((n,s)=>n+s.seen,0),correct=all.reduce((n,s)=>n+s.correct,0),weak=course.words.filter(w=>{const s=course.progress.stats[w.id];return s?.seen&&(s.mastery<.55||s.wrong>s.correct)}).slice(0,8);return <section className="page stats-page"><div className="heading"><h1>Statistics</h1><p>{course.name}</p></div><div className="metrics stats-metrics"><Metric tone="blue" label="Words seen" value={`${seen}/${course.words.length}`}/><Metric tone="green" label="Mastered" value={String(mastered)}/><Metric tone="orange" label="Accuracy" value={`${answers?Math.round(correct/answers*100):0}%`}/></div><section className="desktop-panel"><span className="kicker">NEEDS PRACTICE</span><h2>Difficult words</h2>{weak.length?weak.map(w=><div className="weak-row" key={w.id}><span><strong>{w.target}</strong><small>{w.native}</small></span><b>{Math.round((course.progress.stats[w.id]?.mastery||0)*100)}%</b></div>):<p className="empty-copy">Difficult words will appear here after a few lessons.</p>}</section></section>}
+
+function SettingsPage({data,course,onChange,onBack,onWords,onStats}:{data:Data,course?:Course,onChange:(d:Data)=>void,onBack:()=>void,onWords:()=>void;onStats:()=>void}){
   const exportCsv=()=>{if(!course)return;const q=(v:unknown)=>`"${String(v??"").replace(/"/g,'""')}"`;const rows=[["word","translation","level","lesson","synonyms"],...course.words.map(w=>[w.target,w.native,w.level,w.lesson,w.synonyms.join("; ")])];const blob=new Blob(["\ufeff"+rows.map(r=>r.map(q).join(",")).join("\n")],{type:"text/csv"});const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=`${course.name}-words.csv`;a.click();URL.revokeObjectURL(a.href)};
-  return <section className="full-page settings-page"><div className="settings-shell"><div className="settings-head"><button className="icon-btn large" onClick={onBack}><ArrowLeft/></button><div><span className="kicker">PERSONALISE</span><h1>Settings</h1></div></div><div className="settings-grid"><section className="setting-block"><h2>Course</h2><button className="setting-row" onClick={onWords}><BookOpen/><span><strong>All words</strong><small>Browse the complete course vocabulary</small></span><ChevronRight/></button><button className="setting-row" onClick={exportCsv}><Download/><span><strong>Export CSV</strong><small>Save {course?.words.length||0} words to your device</small></span><ChevronRight/></button></section><section className="setting-block"><h2>Theme</h2><div className="theme-options"><button className={data.theme==="light"?"chosen":""} onClick={()=>onChange({...data,theme:"light"})}><Sun/>Light</button><button className={data.theme==="dark"?"chosen":""} onClick={()=>onChange({...data,theme:"dark"})}><Moon/>Dark</button></div>{data.theme==="dark"&&<div className="accent-options"><button className={data.accent==="purple"?"chosen":""} onClick={()=>onChange({...data,accent:"purple"})}><i className="swatch purple-swatch"/>Purple</button><button className={data.accent==="blue"?"chosen":""} onClick={()=>onChange({...data,accent:"blue"})}><i className="swatch blue-swatch"/>Blue</button></div>}</section></div></div></section>}
+  return <section className="full-page settings-page"><div className="settings-shell"><div className="settings-head"><button className="icon-btn large" onClick={onBack}><ArrowLeft/></button><div><span className="kicker">PERSONALISE</span><h1>Settings</h1></div></div><div className="settings-stack"><section className="setting-block"><h2>Course</h2><button className="setting-row" onClick={onWords}><BookOpen/><span><strong>All words</strong><small>Browse the complete course vocabulary</small></span><ChevronRight/></button><button className="setting-row" onClick={onStats}><BarChart3/><span><strong>Statistics</strong><small>See progress and difficult words</small></span><ChevronRight/></button><button className="setting-row" onClick={exportCsv}><Download/><span><strong>Export CSV</strong><small>Save {course?.words.length||0} words to your device</small></span><ChevronRight/></button></section><section className="setting-block"><h2>Appearance</h2><div className="theme-options"><button className={data.theme==="light"?"chosen":""} onClick={()=>onChange({...data,theme:"light"})}><Sun/>Light</button><button className={data.theme==="dark"?"chosen":""} onClick={()=>onChange({...data,theme:"dark"})}><Moon/>Dark</button></div>{data.theme==="dark"&&<div className="accent-options"><button className={data.accent==="purple"?"chosen":""} onClick={()=>onChange({...data,accent:"purple"})}><i className="swatch purple-swatch"/>Purple</button><button className={data.accent==="blue"?"chosen":""} onClick={()=>onChange({...data,accent:"blue"})}><i className="swatch blue-swatch"/>Blue</button></div>}</section></div></div></section>}
 
 function Lesson({course,number,onSave,onClose}:{course:Course,number:number,onSave:(c:Course)=>void,onClose:()=>void}){
   const session=useMemo(()=>lessonSession(course,number),[course.id,number]);const [phase,setPhase]=useState<"intro"|"tasks"|"done">(session.intro.length?"intro":"tasks"),[index,setIndex]=useState(0),[answer,setAnswer]=useState(""),[feedback,setFeedback]=useState<{ok:boolean;text:string}|null>(null),[busy,setBusy]=useState(false),[paired,setPaired]=useState<Record<string,string>>({});const started=useRef(Date.now());const intro=session.intro[index],task=session.tasks[index];
