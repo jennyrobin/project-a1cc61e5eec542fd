@@ -77,10 +77,13 @@ export default function App() {
   const [menu,setMenu] = useState(false);
   const [lesson,setLesson] = useState(1);
   const [extending,setExtending] = useState(false);
+  const scaleLayerRef = useRef<HTMLDivElement>(null);
+  const visualScaleRef = useRef(100);
   const active = data.courses.find(c=>c.id===data.activeCourseId) ?? data.courses[0];
-  useEffect(()=>{ try { const raw=localStorage.getItem(STORE); if(raw) setData({...empty,...JSON.parse(raw)}); } finally { setReady(true); } },[]);
+  useEffect(()=>{ try { const raw=localStorage.getItem(STORE); if(raw){const loaded={...empty,...JSON.parse(raw)} as Data;visualScaleRef.current=loaded.interfaceScale??100;setData(loaded)} } finally { setReady(true); } },[]);
   useEffect(()=>{ if(ready) localStorage.setItem(STORE,JSON.stringify(data)); },[data,ready]);
   useEffect(()=>{ if(ready && !active) setScreen("create"); },[ready,active]);
+  useEffect(()=>{const layer=scaleLayerRef.current;if(!layer)return;const target=data.interfaceScale??100,from=visualScaleRef.current;const apply=(value:number)=>{const factor=value/100;layer.style.transform=`scale(${factor})`;layer.style.width=`${100/factor}%`;layer.style.minHeight=`${100/factor}vh`;visualScaleRef.current=value};if(Math.abs(target-from)<.1){apply(target);return}let frame=0,start=0;const tick=(now:number)=>{if(!start)start=now;const progress=Math.min(1,(now-start)/460),eased=progress*progress*(3-2*progress);apply(from+(target-from)*eased);if(progress<1)frame=requestAnimationFrame(tick)};frame=requestAnimationFrame(tick);return()=>cancelAnimationFrame(frame)},[data.interfaceScale,ready]);
   const saveCourse=(course:Course)=>setData(d=>({...d,activeCourseId:course.id,courses:d.courses.map(c=>c.id===course.id?course:c)}));
   if(!ready) return <main className="loading"><span className="spinner"/></main>;
   const extendCourse=async(course:Course,startingLesson:number)=>{
@@ -99,7 +102,9 @@ export default function App() {
     finally{setExtending(false)}
   };
   const openLesson=(n:number)=>{setMenu(false);if(active)void extendCourse(active,n);setLesson(n);setScreen("lesson")};
-  return <main className={`app ${data.theme} ${data.accent}`} style={{zoom:(data.interfaceScale??100)/100} as CSSProperties}>
+  const scaleFactor=(data.interfaceScale??100)/100;
+  return <main className={`app ${data.theme} ${data.accent}`}>
+    <div ref={scaleLayerRef} className="app-scale" style={{transform:`scale(${scaleFactor})`,width:`${100/scaleFactor}%`,minHeight:`${100/scaleFactor}vh`} as CSSProperties}>
     {screen === "create" ? <CreateCourse canBack={!!active} onBack={()=>setScreen("home")} onCreated={c=>{setData(d=>({...d,courses:[...d.courses,c],activeCourseId:c.id}));setScreen("home")}}/> :
      screen === "lesson" && active ? <Lesson course={active} number={lesson} onSave={saveCourse} onClose={()=>setScreen("home")}/> :
      screen === "settings" ? <SettingsPage data={data} course={active} onChange={setData} onBack={()=>setScreen("home")} onWords={()=>setScreen("words")} onStats={()=>setScreen("stats")}/> : <>
@@ -113,6 +118,7 @@ export default function App() {
       {screen === "stats" && active && <Stats course={active}/>} 
     </>}
     {menu && <CourseMenu data={data} onClose={()=>setMenu(false)} onSelect={id=>{setData(d=>({...d,activeCourseId:id}));setMenu(false);setScreen("home")}} onCreate={()=>{setMenu(false);setScreen("create")}} onDelete={course=>{if(confirm(`Delete “${course.name}” and all its progress?`)){setData(d=>{const courses=d.courses.filter(c=>c.id!==course.id);return {...d,courses,activeCourseId:courses[0]?.id}});setMenu(false)}}}/>} 
+    </div>
   </main>;
 }
 
@@ -121,7 +127,7 @@ function Home({course,onLesson,extending}:{course:Course,onLesson:(n:number)=>vo
   const stats=Object.values(course.progress.stats), seen=stats.filter(s=>s.seen).length, mastered=stats.filter(s=>s.mastery>=.86&&s.correct>=3).length;
   const answers=stats.reduce((a,s)=>a+s.seen,0), correct=stats.reduce((a,s)=>a+s.correct,0);
   const pathRef=useRef<HTMLDivElement>(null);
-  useEffect(()=>{ pathRef.current?.querySelector(".current")?.scrollIntoView({behavior:"smooth",inline:"center",block:"nearest"}); },[current]);
+  useEffect(()=>{const path=pathRef.current,node=path?.querySelector<HTMLElement>(".current");if(!path||!node)return;const left=node.offsetLeft-(path.clientWidth-node.offsetWidth)/2;path.scrollTo({left:Math.max(0,left),behavior:"smooth"})},[current]);
   return <section className="page home-page">
     <div className="heading"><h1>Your path</h1><p>{course.targetLanguage} <span>→</span> {course.nativeLanguage} <b>·</b> {course.topic}</p></div>
     <section className="next-lesson"><div><span className="kicker">NEXT LESSON · {current} OF {total}</span><h2>{course.lessonTitles[current] || `Lesson ${current}`}</h2><p>Learn new words, practise them, and revisit difficult ones.</p><button className="primary" onClick={()=>onLesson(current)}><Play size={18} fill="currentColor"/>Start lesson</button></div><div className="ring"><strong>{Math.round(seen/course.words.length*100)||0}%</strong><span>explored</span></div></section>
