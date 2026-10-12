@@ -108,7 +108,7 @@ export default function App() {
   return <main className={`app ${data.theme} ${data.accent} ${showNavigation?"has-navigation":""}`}>
     {showNavigation&&<header className="topbar">
       <div className="top-spacer">{screen!=="home"&&<button className="icon-btn large" aria-label="Back" onClick={()=>setScreen("home")}><ArrowLeft/></button>}</div>
-      <button className="course-trigger" onClick={()=>setMenu(!menu)}>{active?.name.replace(" · "," / ") || "Choose a course"}<ChevronDown size={19}/></button>
+      <button className="course-trigger" onClick={()=>setMenu(!menu)}><span>{active?.name.replace(" · "," / ") || "Choose a course"}</span><ChevronDown size={19}/></button>
       <button className="icon-btn large" aria-label="Settings" onClick={()=>setScreen("settings")}><Settings/></button>
     </header>}
     {showNavigation&&menu&&<CourseMenu data={data} onClose={()=>setMenu(false)} onSelect={id=>{setData(d=>({...d,activeCourseId:id}));setMenu(false);setScreen("home")}} onCreate={()=>{setMenu(false);setScreen("create")}} onDelete={()=>{setMenu(false);setScreen("delete")}}/>}

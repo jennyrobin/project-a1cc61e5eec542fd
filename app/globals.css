@@ -44,3 +44,4 @@ html{overflow-y:auto;scrollbar-width:none;background:#f4f7fb}html::-webkit-scrol
 @keyframes courseDrop{from{opacity:0;transform:translate(-50%,-12px)}to{opacity:1;transform:translate(-50%,0)}}
 .scale-control{touch-action:none;cursor:pointer}.scale-control input{pointer-events:none}.scale-dots{pointer-events:none}
 .app.has-navigation{padding-top:74px}.app.has-navigation>.topbar{position:fixed;top:0;left:0;right:0;width:100%;z-index:70}@media(max-width:760px){.app.has-navigation{padding-top:68px}}
+.course-trigger{display:grid;grid-template-columns:minmax(27px,1fr) minmax(0,max-content) minmax(27px,1fr);align-items:center;gap:0}.course-trigger>span{grid-column:2;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.course-trigger>svg{grid-column:3;justify-self:start;margin-left:8px}
