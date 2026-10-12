@@ -1,6 +1,11 @@
 const URL="https://api.groq.com/openai/v1/chat/completions";
 const MODELS=["qwen/qwen3.8-27b","openai/gpt-oss-20b"];
-const WEB_ORIGINS=new Set(["https://wordway-learning-2026.web.app","https://wordway-learning-2026.firebaseapp.com"]);
+const WEB_ORIGINS=new Set([
+  "https://wordway-learning.web.app",
+  "https://wordway-learning.firebaseapp.com",
+  "https://wordway-learning-2026.web.app",
+  "https://wordway-learning-2026.firebaseapp.com",
+]);
 function cors(request:Request){const origin=request.headers.get("origin")||"";return WEB_ORIGINS.has(origin)?{"Access-Control-Allow-Origin":origin,"Access-Control-Allow-Methods":"POST, OPTIONS","Access-Control-Allow-Headers":"Content-Type","Vary":"Origin"}:{} }
 export async function OPTIONS(request:Request){return new Response(null,{status:204,headers:cors(request)})}
 function extract(text:string){const clean=text.replace(/<think>[\s\S]*?<\/think>/gi,"").replace(/```(?:json)?/gi,"").replace(/```/g,"").trim();for(let start=0;start<clean.length;start++){if(clean[start]!=="{")continue;let depth=0,quoted=false,escaped=false;for(let end=start;end<clean.length;end++){const ch=clean[end];if(escaped){escaped=false;continue}if(ch==="\\"&&quoted){escaped=true;continue}if(ch==='"'){quoted=!quoted;continue}if(quoted)continue;if(ch==="{")depth++;if(ch==="}")depth--;if(depth===0){try{return JSON.parse(clean.slice(start,end+1))}catch{break}}}}throw new Error("Invalid AI response")}
