@@ -139,6 +139,24 @@ export async function POST(request:Request){
   try{
     const body=await request.json() as Record<string,unknown>;
     if(body.action==="generate")return json({words:await generateWords(body)});
+    if(body.action==="enrich"){
+      const entries=(Array.isArray(body.entries)?body.entries:[]).slice(0,20).map((entry,index)=>({sourceIndex:index,...(typeof entry==="string"?{target:entry,native:""}:entry as RawWord)})).filter(entry=>String(entry.target||"").trim());
+      if(!entries.length)return json({error:"No words to import"},400);
+      const existing=Array.isArray(body.existing)?body.existing.map(String).slice(-300):[];
+      const data=await chat(
+        "You are a strict bilingual dictionary editor. Enrich user-supplied vocabulary without changing its intended meaning. Return one JSON object only, no markdown or reasoning. Preserve sourceIndex and return every entry exactly once.",
+        `Learning language: ${body.targetLanguage}. Translation language: ${body.nativeLanguage}. Course topic: ${body.topic}. Existing course words to avoid: ${existing.join(", ")}. User entries: ${JSON.stringify(entries)}. Correct spelling and natural dictionary form. Keep a supplied translation when it is correct; otherwise correct it. Fill every missing translation. Add natural article, gender, plural, principal forms, meanings, synonyms in ${body.targetLanguage}, pronunciation, a short example and CEFR level. Return {"words":[{"sourceIndex":0,"target":"","native":"","article":"","gender":"","plural":"","partOfSpeech":"","forms":[""],"meanings":[""],"synonyms":[""],"pronunciation":"","exampleTarget":"","exampleNative":"","cefr":"A1"}]}.`
+      ) as {words?:RawWord[]};
+      const returned=Array.isArray(data.words)?data.words:[];
+      const words=entries.map((entry,index)=>{
+        const enriched=returned.find(word=>Number(word.sourceIndex)===index)||returned[index];
+        if(!enriched)throw new AiError("The AI omitted an imported word. Please retry this group.",502);
+        const target=String(enriched.target||entry.target||"").trim(),native=String(enriched.native||entry.native||"").trim();
+        if(!target||!native)throw new AiError("The AI could not translate an imported word. Please retry this group.",502);
+        return {target,native,article:String(enriched.article||entry.article||"").trim(),gender:String(enriched.gender||entry.gender||"").trim(),plural:String(enriched.plural||entry.plural||"").trim(),partOfSpeech:String(enriched.partOfSpeech||entry.partOfSpeech||"").trim(),forms:stringList(enriched.forms||entry.forms),meanings:stringList(enriched.meanings||[native]),synonyms:stringList(enriched.synonyms||entry.synonyms,4),pronunciation:String(enriched.pronunciation||"").trim(),exampleTarget:String(enriched.exampleTarget||entry.exampleTarget||"").trim(),exampleNative:String(enriched.exampleNative||entry.exampleNative||"").trim(),cefr:cefr(enriched.cefr,index),verified:true};
+      });
+      return json({words});
+    }
     if(body.action==="titles"){
       const words=Array.isArray(body.words)?body.words as RawWord[]:[],lines=words.map(word=>`${word.lesson}: ${word.target}`).join("\n");
       const data=await chat("Name language lessons. Return strict JSON only.",`Name each lesson in 2-5 words in ${body.nativeLanguage}. Topic: ${body.topic}. Words:\n${lines}\nReturn {"titles":{"1":"..."}}.`) as {titles?:Record<string,string>};
