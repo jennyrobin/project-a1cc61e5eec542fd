@@ -60,3 +60,10 @@ next-env.d.ts
 /qa-create.png
 /qa-words.png
 /desktop-program.png
+
+# Generated deployment artifacts and local visual checks.
+/.firebase/
+/firebase-web/dist/
+/firebase-debug.log
+/*.tar.gz
+/artifacts-*.png
